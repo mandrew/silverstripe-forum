@@ -1253,6 +1253,8 @@ class Forum_Controller extends Page_Controller {
 				$thread->write();
 			}
 		}
+
+		Session::set('ForumAdminMsg',_t('Forum.SETTINGSUPDATED','Thread settings have been updated'));
 		
 		return $this->redirect($this->Link());
 	}

@@ -5,7 +5,7 @@
 			<p><% _t('ForumHolder_popularthreas_ss.SORTTHREADSBY', 'Sort threads by:') %> <a<% if Method = posts %> class="current"<% end_if %> href="{$Link}popularthreads?by=posts"><% _t('ForumHolder_popularthreas_ss.POSTCOUNT', 'Post count') %></a> | <a<% if Method = views %> class="current"<% end_if %> href="{$Link}popularthreads?by=views"><% _t('ForumHolder_popularthreas_ss.NUMVIEWS', 'Number of views') %></a></p>
 		</div>
 		
-		<table id="ThreadsList">
+		<table id="ThreadsList" class="forum-table">
 			<tr class="head">
 				<th><% _t('ForumHolder_popularthreas_ss.POSTS', 'Posts') %></th>
 				<th><% _t('ForumHolder_popularthreas_ss.VIEWS', 'Views') %></th>
@@ -15,7 +15,7 @@
 			
 			<% loop Threads %>
 				<tr class="$EvenOdd">
-					<td>$Posts.Count</td>
+					<td>$Children.Count</td>
 					<td>$NumViews</td>
 					<td><a href="$Link">$Title</a></td>
 					<td>$Created.Nice</td>
