@@ -468,6 +468,8 @@ class Forum_Controller extends Page_Controller {
 		'starttopic',
 		'subscribe',
 		'unsubscribe',
+		'forumSubscribe',
+		'forumUnsubscribe',
 		'rss'
 	);
 	
@@ -529,8 +531,62 @@ class Forum_Controller extends Page_Controller {
 	function OpenIDAvailable() {
 		return $this->Parent()->OpenIDAvailable();
 	}
+	
+	function getHasSubscribed() {
+		$member = Member::currentUser();
+
+		return ($member) ? Forum_Subscription::already_subscribed($this->ID, $member->ID) : false;
+	}
 
 	/**
+	 * Subscribe a user to a forum given by an ID.
+	 * 
+	 * Designed to be called via AJAX so return true / false
+	 *
+	 * @return bool
+	 */
+	function forumSubscribe() {		
+		if(Member::currentUser() && !Forum_Subscription::already_subscribed($this->urlParams['ID'])) {
+			$obj = new Forum_Subscription();		
+			$obj->ForumID = $this->ID;
+			$obj->MemberID = Member::currentUserID();
+			$obj->LastSent = date("Y-m-d H:i:s"); 
+			$obj->write();
+			$this->redirectBack();
+			return true;
+		}
+		
+		return false;
+	}
+
+	/**
+	 * Unsubscribe a user from a thread by an ID
+	 *
+	 * Designed to be called via AJAX so return true / false
+	 *
+	 * @return bool
+	 */
+	function forumUnsubscribe() {
+		$member = Member::currentUser();
+
+		if(!$member) {
+			Security::permissionFailure($this, _t('LOGINTOUNSUBSCRIBE', 'To unsubscribe from that forum, please log in first.'));
+		}
+		
+		if(Forum_Subscription::already_subscribed($this->ID, $member->ID)) {
+			$output = DB::query("
+				DELETE FROM \"Forum_Subscription\" 
+				WHERE \"ForumID\" = '". Convert::raw2sql($this->ID) ."' 
+				AND \"MemberID\" = '$member->ID'")->value();
+			
+			$this->redirectBack();
+			return true;
+		}
+
+		return false;
+	}
+	
+	 /**
 	 * Subscribe a user to a thread given by an ID.
 	 * 
 	 * Designed to be called via AJAX so return true / false
@@ -580,7 +636,7 @@ class Forum_Controller extends Page_Controller {
 
 		return false;
 	}
-	
+   
 	/**
 	 * Mark a post as spam. Deletes any posts or threads created by that user
 	 * and removes their user account from the site
@@ -679,10 +735,14 @@ class Forum_Controller extends Page_Controller {
 	 * @return Form Returns the post message form
 	 */
 	function PostMessageForm($addMode = false, $post = false) {
+		
 		$thread = false;
 
-		if($post) $thread = $post->Thread();
-		else if(isset($this->urlParams['ID'])) $thread = DataObject::get_by_id('ForumThread', $this->urlParams['ID']);	
+		if($post) {
+			$thread = $post->Thread();
+		} else if(isset($this->urlParams['ID'])) {
+			$thread = DataObject::get_by_id('ForumThread', $this->urlParams['ID']);	
+		}
 
 		// Check permissions
 		$messageSet = array(
@@ -725,7 +785,7 @@ class Forum_Controller extends Page_Controller {
 			),
 			new CheckboxField("TopicSubscription", 
 				_t('Forum.SUBSCRIBETOPIC','Subscribe to this topic (Receive email notifications when a new reply is added)'), 
-				($thread) ? $thread->getHasSubscribed() : false)
+				($thread) ? $thread->getHasSubscribed() : true)
 		);
 		
 		if($thread) $fields->push(new HiddenField('ThreadID', 'ThreadID', $thread->ID));
@@ -940,6 +1000,11 @@ class Forum_Controller extends Page_Controller {
 		// Send any notifications that need to be sent
 		ForumThread_Subscription::notify($post);
 		
+		// If enabled in the CMS - allow users to subscribe to forums
+		if($holder = DataObject::get_one('ForumHolder', "\"AllowForumSubscriptions\" = '1'")) {
+			Forum_Subscription::notify($post);
+		}
+		
 		// Send any notifications to moderators of the forum
 		if (Forum::$notify_moderators) {
 			if(isset($starting_thread) && $starting_thread) $this->notifyModerators($post, $thread, true);
@@ -1066,7 +1131,7 @@ class Forum_Controller extends Page_Controller {
 		$topic = array(
 			'Subtitle' => DBField::create_field('HTMLText', _t('Forum.NEWTOPIC','Start a new topic')),
 			'Abstract' => DBField::create_field('HTMLText', DataObject::get_one("ForumHolder")->ForumAbstract)
-		);
+		);		
 		return $topic;
 	}
 

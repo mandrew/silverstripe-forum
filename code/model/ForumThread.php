@@ -236,7 +236,7 @@ class ForumThread_Subscription extends DataObject {
 
 	private static $has_one = array(
 		"Thread" => "ForumThread",
-		"Member" => "Member"
+		"Member" => "Member"		
 	);
 
 	/**
@@ -269,28 +269,27 @@ class ForumThread_Subscription extends DataObject {
 	 *
 	 * @param Post $post The post that has just been added
 	 */
-	static function notify(Post $post) {
+	static function notify(Post $post) {			
 		$list = DataObject::get(
 			"ForumThread_Subscription",
 			"\"ThreadID\" = '". $post->ThreadID ."' AND \"MemberID\" != '$post->AuthorID'"
 		);
 		
-		if($list) {
+		if($list) {			
 			foreach($list as $obj) {
 				$SQL_id = Convert::raw2sql((int)$obj->MemberID);
-
+		
 				// Get the members details
 				$member = DataObject::get_one("Member", "\"Member\".\"ID\" = '$SQL_id'");
-				$adminEmail = Config::inst()->get('Email', 'admin_email');
 
 				if($member) {
 					$email = new Email();
-					$email->setFrom($adminEmail);
+					$email->setFrom(ForumHolder::get()->First()->ForumEmailAddress);
 					$email->setTo($member->Email);
-					$email->setSubject('New reply for ' . $post->Title);
+					$email->setSubject('New reply in the topic `' . $post->Title) . "`";
 					$email->setTemplate('ForumMember_TopicNotification');
 					$email->populateTemplate($member);
-					$email->populateTemplate($post);
+					$email->populateTemplate($post);					
 					$email->populateTemplate(array(
 						'UnsubscribeLink' => Director::absoluteBaseURL() . $post->Thread()->Forum()->Link() . '/unsubscribe/' . $post->ID
 					));
