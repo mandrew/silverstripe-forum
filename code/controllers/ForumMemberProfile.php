@@ -52,6 +52,7 @@ class ForumMemberProfile extends Page_Controller {
 	 * Initialise the controller
 	 */
 	function init() {
+		parent::init();
 		Requirements::themedCSS('Forum','forum','all');
 		$member = $this->Member() ? $this->Member() : null;
 		$nicknameText = ($member) ? ($member->Nickname . '\'s ') : '';
@@ -59,14 +60,22 @@ class ForumMemberProfile extends Page_Controller {
 		//$this->Title = DBField::create('HTMLText',Convert::raw2xml($nicknameText) . _t('ForumMemberProfile.USERPROFILE', 'User Profile'));
 		$this->Title = DBField::create_field('HTMLText', Convert::raw2xml($nicknameText) . _t('ForumMemberProfile.USERPROFILE', 'User Profile'));
 		
-		parent::init();
  	}
 
 	function show($request) {
 		$member = $this->Member();
 		if(!$member) return $this->httpError(404);
 		
-		return $this->renderWith(array('ForumMemberProfile_show', 'Page'));
+		if($member->ID == Member::currentUserID()) {		
+			$this->redirect('ForumMemberProfile/edit/'.$member->ID);
+		} else {
+		    $data = array(
+				"Title" => "Forum",
+				"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
+				"Abstract" => DataObject::get_one("ForumHolder")->ProfileAbstract,
+		    );			
+			return $this->owner->customise($data)->renderWith(array('ForumMemberProfile_show', 'Page'));	
+		}			
 	}
 
  	/**
@@ -426,7 +435,7 @@ class ForumMemberProfile extends Page_Controller {
 		return array(
 			"Title" => "Forum",
 			"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
-			"Abstract" => DataObject::get_one("ForumHolder")->ProfileAbstract,
+			"Abstract" => DataObject::get_one("ForumHolder")->EditProfileAbstract,
 			"Form" => $form,
 		);
 	}

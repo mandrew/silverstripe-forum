@@ -15,7 +15,8 @@ class ForumHolder extends Page {
 		"ProfileSubtitle" => "Varchar(200)",
 		"ForumSubtitle" => "Varchar(200)",
 		"HolderAbstract" => "HTMLText", 
-		"ProfileAbstract" => "HTMLText", 
+		"ProfileAbstract" => "HTMLText",
+		"EditProfileAbstract" => "HTMLText", 
 		"ForumAbstract" => "HTMLText", 
 		"ProfileModify" => "HTMLText", 
 		"ProfileAdd" => "HTMLText",
@@ -23,8 +24,10 @@ class ForumHolder extends Page {
 		"ShowInCategories" => "Boolean",
 		"AllowGravatars" => "Boolean",
 		"GravatarType" => "Varchar(10)",
+		'AllowForumSubscriptions' => "Boolean",
 		"ForbiddenWords" => "Text",
 		"CanPostType" => "Enum('Anyone, LoggedInUsers, OnlyTheseUsers, NoOne', 'LoggedInUsers')",
+		"ForumEmailAddress" => "Text"
 	);
 	
 	private static $has_one = array();
@@ -40,7 +43,8 @@ class ForumHolder extends Page {
 		"ProfileSubtitle" => "Edit Your Profile",
 		"ForumSubtitle" => "Start a new topic",
 		"HolderAbstract" => "<p>If this is your first visit, you will need to <a class=\"broken\" title=\"Click here to register\" href=\"ForumMemberProfile/register\">register</a> before you can post. However, you can browse all messages below.</p>",
-		"ProfileAbstract" => "<p>Please fill out the fields below. You can choose whether some are publically visible by using the checkbox for each one.</p>",
+		"ProfileAbstract" => "<p>Public profile details for this member</p>",
+		"EditProfileAbstract" => "<p>Please fill out the fields below. You can choose whether some are publically visible by using the checkbox for each one.</p>",
 		"ForumAbstract" => "<p>From here you can start a new topic.</p>",
 		"ProfileModify" => "<p>Thanks, your member profile has been modified.</p>",
 		"ProfileAdd" => "<p>Thanks, you are now signed up to the forum.</p>",
@@ -74,16 +78,19 @@ class ForumHolder extends Page {
 	
 	function getCMSFields() {
 		$fields = parent::getCMSFields();
+		
 		$fields->addFieldsToTab("Root.Messages", array(
 			TextField::create("HolderSubtitle","Forum Holder Subtitle"),
 			HTMLEditorField::create("HolderAbstract","Forum Holder Abstract"),
 			TextField::create("ProfileSubtitle","Member Profile Subtitle"),
-			HTMLEditorField::create("ProfileAbstract","Member Profile Abstract"),
+			HTMLEditorField::create("ProfileAbstract","Message to show on Member Profile page"),
+			HTMLEditorField::create("EditProfileAbstract","Message to show on Edit Member Profile page"),
 			TextField::create("ForumSubtitle","Create topic Subtitle"),
 			HTMLEditorField::create("ForumAbstract","Create topic Abstract"),
 			HTMLEditorField::create("ProfileModify","Create message after modifing forum member"),
 			HTMLEditorField::create("ProfileAdd","Create message after adding forum member")
 		));
+
 		$fields->addFieldsToTab("Root.Settings", array(
 			CheckboxField::create("DisplaySignatures", "Display Member Signatures?"),
 			CheckboxField::create("ShowInCategories", "Show Forums In Categories?"),
@@ -95,9 +102,10 @@ class ForumHolder extends Page {
 				"monsterid" => _t('Forum.MONSTERID', 'Monsterid'),
 				"retro" => _t('Forum.RETRO', 'Retro'),
  				"mm" => _t('Forum.MM', 'Mystery Man'),
- 			))->setEmptyString('Use Forum Default')
+ 			))->setEmptyString('Use Forum Default'),
+			CheckboxField::create("AllowForumSubscriptions", "Allow users to subscribe to forums"),
+			TextField::create("ForumEmailAddress", "From E-Mail address for forum")
 		));
-
 
 		$fields->addFieldsToTab("Root.LanguageFilter", array(
 			TextField::create("ForbiddenWords", "Forbidden words (comma separated)"),
