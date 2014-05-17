@@ -71,8 +71,8 @@ class ForumMemberProfile extends Page_Controller {
 		} else {
 		    $data = array(
 				"Title" => "Forum",
-				"Subtitle" => DataObject::get_one("ForumHolder")->ProfileSubtitle,
-				"Abstract" => DataObject::get_one("ForumHolder")->ProfileAbstract,
+				"Subtitle" => ForumHolder::get()->first()->ProfileSubtitle, //@TODO test this shows on a 'show' page via functional test.
+				"Abstract" => ForumHolder::get()->first()->ProfileAbstract, //@TODO test this shows on a 'show' page via functional test.
 		    );			
 			return $this->owner->customise($data)->renderWith(array('ForumMemberProfile_show', 'Page'));	
 		}			
