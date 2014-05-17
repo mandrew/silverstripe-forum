@@ -29,20 +29,20 @@ class ForumSubscription extends DataObject {
 	 * @TODO unit test for this to check if a given known member subscription status can be determined using this method. is/isn't subscribed.
 	 * @TODO move this to the Forum class and refactor?
 	 */
-	static function already_subscribed($ForumID, $MemberID = null) {
-		if(!$MemberID) $MemberID = Member::currentUserID();
+	static function already_subscribed($forumID, $memberID = null) {
+		if(!$memberID) $memberID = Member::currentUserID();
 
 		// @TODO we may not need this as ORM escapes SQL inputs for us. But will need to check.
-		$SQL_ForumID = Convert::raw2sql($ForumID);
-		$SQL_MemberID = Convert::raw2sql($MemberID);
+		$SQL_forumID = Convert::raw2sql($forumID);
+		$SQL_memberID = Convert::raw2sql($memberID);
 		//@TODO may not need with check as ORM will simply return a false if when using these no objects are returned.
-		if($SQL_ForumID=='' || $SQL_MemberID=='')
+		if($SQL_forumID=='' || $SQL_memberID=='')
 			return false;
 
 		$checkSubscribed = ForumSubscription::get()
 			->filter(array(
-				'ForumID' => $SQL_ForumID,
-				'MemberID' => $SQL_MemberID
+				'ForumID' => $SQL_forumID,
+				'MemberID' => $SQL_memberID
 			))
 			->count();
 
@@ -70,7 +70,7 @@ class ForumSubscription extends DataObject {
 		//@TODO moving this method to Forum class would mean you could use on multiple ForumHolders by referencing the parent.
 		$emailAddress = ForumHolder::get()->first()->ForumEmailAddress;
 
-		//@TODO explain in docblock what this is doing?
+		//email each subscribed Member except the author
 		$list = ForumSubscription::get()
 			->filter(array(
 				'ForumID'=>$post->ForumID,

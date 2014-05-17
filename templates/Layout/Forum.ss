@@ -1,5 +1,5 @@
 <% include ForumHeader %>
-
+<% include ForumSubscribe %>
 <% if ForumAdminMsg %>
 	<p class="forum-message-admin">$ForumAdminMsg</p>
 <% end_if %>

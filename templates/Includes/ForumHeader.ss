@@ -67,5 +67,4 @@
 			<% end_loop %>
 		</p>
 	<% end_if %>
-	<% include ForumSubscribe %>
 </div><!-- forum-header. -->

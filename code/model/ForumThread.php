@@ -247,20 +247,20 @@ class ForumThread_Subscription extends DataObject {
 	 *
 	 * @return bool true if they are subscribed, false if they're not
 	 */
-	static function already_subscribed($ThreadID, $MemberID = null) {
-		if(!$MemberID) $MemberID = Member::currentUserID();
+	static function already_subscribed($threadID, $memberID = null) {
+		if(!$memberID) $memberID = Member::currentUserID();
 
 		//@TODO may not need this as now using ORM.
-		$SQL_ThreadID = Convert::raw2sql($ThreadID);
-		$SQL_MemberID = Convert::raw2sql($MemberID);
+		$SQL_threadID = Convert::raw2sql($threadID);
+		$SQL_memberID = Convert::raw2sql($memberID);
 
-		if($SQL_ThreadID=='' || $SQL_MemberID=='')
+		if($SQL_threadID=='' || $SQL_memberID=='')
 			return false;
 
 		$checkSubscribed = ForumThread_Subscription::get()
 			->filter(array(
-				'ThreadID' => $SQL_ThreadID,
-				'MemberID' => $SQL_MemberID
+				'ThreadID' => $SQL_threadID,
+				'MemberID' => $SQL_memberID
 			))
 			->count();
 

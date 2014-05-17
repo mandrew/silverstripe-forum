@@ -468,8 +468,8 @@ class Forum_Controller extends Page_Controller {
 		'starttopic',
 		'subscribe',
 		'unsubscribe',
-		'forumSubscribe',
-		'forumUnsubscribe',
+		'forumsubscribe',
+		'forumunsubscribe',
 		'rss'
 	);
 	
@@ -542,45 +542,59 @@ class Forum_Controller extends Page_Controller {
 	 * Subscribe a user to a forum given by an ID.
 	 * 
 	 * Designed to be called via AJAX so return true / false
-	 *
+	 * @TODO functional test this
 	 * @return bool
 	 */
-	function forumSubscribe() {		
-		if(Member::currentUser() && !ForumSubscription::already_subscribed($this->urlParams['ID'])) {
+	function forumsubscribe() {
+		$member = Member::currentUser();
+		if($member && !ForumSubscription::already_subscribed($this->urlParams['ID'], $member->ID)){
 			$obj = new ForumSubscription();
-			$obj->ForumID = $this->ID;
-			$obj->MemberID = Member::currentUserID();
+			$obj->ForumID = $this->urlParams['ID'];
+			$obj->MemberID = $member->ID;
 			$obj->LastSent = date("Y-m-d H:i:s"); 
 			$obj->write();
-			$this->redirectBack();
-			return true;
+
+			//if ajax die and return boolean value of 1 else redirect the user back
+			if(Director::is_ajax()){
+				die('1');
+			} else {
+				$this->redirectBack();
+			}
 		}
 		
 		return false;
 	}
 
 	/**
-	 * Unsubscribe a user from a thread by an ID
+	 * Unsubscribe a user from a forum by an ID
 	 *
 	 * Designed to be called via AJAX so return true / false
-	 *
+	 * @TODO functional test this
 	 * @return bool
 	 */
-	function forumUnsubscribe() {
+	function forumunsubscribe() {
 		$member = Member::currentUser();
 
+		//Must be a logged in user
 		if(!$member) {
 			Security::permissionFailure($this, _t('LOGINTOUNSUBSCRIBE', 'To unsubscribe from that forum, please log in first.'));
 		}
-		
-		if(ForumSubscription::already_subscribed($this->ID, $member->ID)) {
-			$output = DB::query("
-				DELETE FROM \"ForumSubscription\"
-				WHERE \"ForumID\" = '". Convert::raw2sql($this->ID) ."' 
-				AND \"MemberID\" = '$member->ID'")->value();
-			
-			$this->redirectBack();
-			return true;
+
+		//must already have a subscription set
+		if(ForumSubscription::already_subscribed($this->urlParams['ID'], $member->ID)) {
+			//remove the subscription
+			ForumSubscription::get()->filter(array(
+				'ForumID' => $this->urlParams['ID'],
+				'MemberID' => $member->ID
+			))->first()->delete();
+
+
+			//if ajax die and return boolean value of 1 else redirect the user back
+			if(Director::is_ajax()){
+				die('1');
+			} else {
+				$this->redirectBack();
+			}
 		}
 
 		return false;
@@ -740,8 +754,8 @@ class Forum_Controller extends Page_Controller {
 
 		if($post) {
 			$thread = $post->Thread();
-		} else if(isset($this->urlParams['ID'])) {
-			$thread = DataObject::get_by_id('ForumThread', $this->urlParams['ID']);	
+		} elseif(isset($this->urlParams['ID'])) {
+			$thread = ForumThread::get()->byID($this->urlParams['ID']);
 		}
 
 		// Check permissions
@@ -1001,8 +1015,14 @@ class Forum_Controller extends Page_Controller {
 		ForumThread_Subscription::notify($post);
 		
 		// If enabled in the CMS - allow users to subscribe to forums
-		if($holder = DataObject::get_one('ForumHolder', "\"AllowForumSubscriptions\" = '1'")) {
-			Forum_Subscription::notify($post);
+		// @TODO refactor to allow for many ForumHolder
+		$holder = ForumHolder::get()
+			->filter(array(
+				'AllowForumSubscriptions' => 1
+			))->first();
+
+		if($holder) {
+			ForumSubscription::notify($post);
 		}
 		
 		// Send any notifications to moderators of the forum
