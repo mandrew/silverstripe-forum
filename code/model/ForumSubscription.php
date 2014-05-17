@@ -69,11 +69,10 @@ class ForumSubscription extends DataObject {
 		// Yet to test
 		//@TODO moving this method to Forum class would mean you could use on multiple ForumHolders by referencing the parent.
 		$emailAddress = ForumHolder::get()->first()->ForumEmailAddress;
-
 		//email each subscribed Member except the author
 		$list = ForumSubscription::get()
 			->filter(array(
-				'ForumID'=>$post->ForumID,
+				'ForumID'=> $post->ForumID,
 				'MemberID:not' => $post->AuthorID
 			));
 			
@@ -81,10 +80,9 @@ class ForumSubscription extends DataObject {
 			foreach($list as $obj) {
 				//@TODO may not need to escape if we now use the ORM which does this for us, something to check?
 				$SQL_id = Convert::raw2sql((int)$obj->MemberID);
-
 				// Get the members details
-				$member = Member::get()->filter(array('ID',$SQL_id))->first();
-				
+				$member = Member::get()->filter(array('ID' => $SQL_id))->first();
+
 				if($member) {
 					$email = new Email();
 					$email->setFrom($emailAddress);
@@ -94,7 +92,7 @@ class ForumSubscription extends DataObject {
 					$email->populateTemplate($member);
 					$email->populateTemplate($post);
 					$email->populateTemplate(array(
-						'UnsubscribeLink' => $post->Thread()->Forum()->Link() . '/forumUnsubscribe/?BackURL=' . $post->Thread()->Forum()->Link()						
+						'UnsubscribeLink' => $post->Thread()->Forum()->Link() . 'forumunsubscribe/' . $post->Thread()->Forum()->ID . '?BackURL=' . $post->Thread()->Forum()->Link()
 					));
 					$email->send();
 				}

@@ -543,6 +543,7 @@ class Forum_Controller extends Page_Controller {
 	 * 
 	 * Designed to be called via AJAX so return true / false
 	 * @TODO functional test this
+	 * @TODO check the CSRF token
 	 * @return bool
 	 */
 	function forumsubscribe() {
@@ -570,6 +571,7 @@ class Forum_Controller extends Page_Controller {
 	 *
 	 * Designed to be called via AJAX so return true / false
 	 * @TODO functional test this
+	 * @TODO check the CSRF token
 	 * @return bool
 	 */
 	function forumunsubscribe() {
@@ -1024,6 +1026,7 @@ class Forum_Controller extends Page_Controller {
 		if($holder) {
 			ForumSubscription::notify($post);
 		}
+
 		
 		// Send any notifications to moderators of the forum
 		if (Forum::$notify_moderators) {
