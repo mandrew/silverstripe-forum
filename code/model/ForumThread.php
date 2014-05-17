@@ -247,19 +247,30 @@ class ForumThread_Subscription extends DataObject {
 	 *
 	 * @return bool true if they are subscribed, false if they're not
 	 */
-	static function already_subscribed($threadID, $memberID = null) {
-		if(!$memberID) $memberID = Member::currentUserID();
-		$SQL_threadID = Convert::raw2sql($threadID);
-		$SQL_memberID = Convert::raw2sql($memberID);
+	static function already_subscribed($ThreadID, $MemberID = null) {
+		if(!$memberID) $MemberID = Member::currentUserID();
+
+		//@TODO may not need this as now using ORM.
+		$SQL_ThreadID = Convert::raw2sql($ThreadID);
+		$SQL_MemberID = Convert::raw2sql($MemberID);
 
 		if($SQL_threadID=='' || $SQL_memberID=='')
 			return false;
-			
-		return (DB::query("
-			SELECT COUNT(\"ID\") 
-			FROM \"ForumThread_Subscription\" 
-			WHERE \"ThreadID\" = '$SQL_threadID' AND \"MemberID\" = $SQL_memberID"
-		)->value() > 0) ? true : false;
+
+		$checkSubscribed = ForumThread_Subscription::get()
+			->filter(array(
+				'ThreadID' => $SQL_ThreadID,
+				'MemberID' => $SQL_MemberID
+			))
+			->count();
+
+		if($checkSubscribed > 0){
+			//subscribed to this thread
+			return true;
+		} else {
+			//not subscribed to this thread
+			return false;
+		}
 	}
 
 	/**
@@ -269,22 +280,25 @@ class ForumThread_Subscription extends DataObject {
 	 *
 	 * @param Post $post The post that has just been added
 	 */
-	static function notify(Post $post) {			
-		$list = DataObject::get(
-			"ForumThread_Subscription",
-			"\"ThreadID\" = '". $post->ThreadID ."' AND \"MemberID\" != '$post->AuthorID'"
-		);
+	static function notify(Post $post) {
+
+		$list = ForumThread_Subscription::get()
+			->filter(array(
+				'ThreadID'=>$post->ThreadID,
+				'MemberID:not' => $post->AuthorID
+			));
 		
 		if($list) {			
 			foreach($list as $obj) {
+				//@TODO may not need now using ORM
 				$SQL_id = Convert::raw2sql((int)$obj->MemberID);
 		
 				// Get the members details
-				$member = DataObject::get_one("Member", "\"Member\".\"ID\" = '$SQL_id'");
+				$member = Member::get()->filter(array('ID',$SQL_id))->first();
 
 				if($member) {
 					$email = new Email();
-					$email->setFrom(ForumHolder::get()->First()->ForumEmailAddress);
+					$email->setFrom(ForumHolder::get()->First()->ForumEmailAddress); //add a fall back to the global admin address?
 					$email->setTo($member->Email);
 					$email->setSubject('New reply in the topic `' . $post->Title) . "`";
 					$email->setTemplate('ForumMember_TopicNotification');
