@@ -535,7 +535,7 @@ class Forum_Controller extends Page_Controller {
 	function getHasSubscribed() {
 		$member = Member::currentUser();
 
-		return ($member) ? Forum_Subscription::already_subscribed($this->ID, $member->ID) : false;
+		return ($member) ? ForumSubscription::already_subscribed($this->ID, $member->ID) : false;
 	}
 
 	/**
@@ -546,8 +546,8 @@ class Forum_Controller extends Page_Controller {
 	 * @return bool
 	 */
 	function forumSubscribe() {		
-		if(Member::currentUser() && !Forum_Subscription::already_subscribed($this->urlParams['ID'])) {
-			$obj = new Forum_Subscription();		
+		if(Member::currentUser() && !ForumSubscription::already_subscribed($this->urlParams['ID'])) {
+			$obj = new ForumSubscription();
 			$obj->ForumID = $this->ID;
 			$obj->MemberID = Member::currentUserID();
 			$obj->LastSent = date("Y-m-d H:i:s"); 
@@ -573,9 +573,9 @@ class Forum_Controller extends Page_Controller {
 			Security::permissionFailure($this, _t('LOGINTOUNSUBSCRIBE', 'To unsubscribe from that forum, please log in first.'));
 		}
 		
-		if(Forum_Subscription::already_subscribed($this->ID, $member->ID)) {
+		if(ForumSubscription::already_subscribed($this->ID, $member->ID)) {
 			$output = DB::query("
-				DELETE FROM \"Forum_Subscription\" 
+				DELETE FROM \"ForumSubscription\"
 				WHERE \"ForumID\" = '". Convert::raw2sql($this->ID) ."' 
 				AND \"MemberID\" = '$member->ID'")->value();
 			

@@ -30,13 +30,13 @@ class ForumSubscription extends DataObject {
 	 * @TODO move this to the Forum class and refactor?
 	 */
 	static function already_subscribed($ForumID, $MemberID = null) {
-		if(!$memberID) $MemberID = Member::currentUserID();
+		if(!$MemberID) $MemberID = Member::currentUserID();
 
 		// @TODO we may not need this as ORM escapes SQL inputs for us. But will need to check.
 		$SQL_ForumID = Convert::raw2sql($ForumID);
 		$SQL_MemberID = Convert::raw2sql($MemberID);
 		//@TODO may not need with check as ORM will simply return a false if when using these no objects are returned.
-		if($SQL_forumID=='' || $SQL_memberID=='')
+		if($SQL_ForumID=='' || $SQL_MemberID=='')
 			return false;
 
 		$checkSubscribed = ForumSubscription::get()
