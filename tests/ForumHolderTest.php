@@ -165,4 +165,15 @@ class ForumHolderTest extends FunctionalTest {
 		$this->assertTrue(ForumHolder::new_posts_available($fh->ID, $data, null, null, null, $thread->ID));
 		$this->assertFalse(ForumHolder::new_posts_available($fh->ID, $data, null, $lastPostID, null, $thread->ID));
 	}
+
+	public function testForumEmail(){
+		Config::inst()->update('Email','admin_email','admin@test.com');
+		//test that it returns the set forum specific email address
+		$fhForumEmail = $this->objFromFixture("ForumHolder", "fhForumEmail");
+		$this->assertEquals($fhForumEmail->ForumEmailAddress,"forum@test.com");
+
+		//test if not supplied it falls back on the global Email.admin_email
+		$fh = $this->objFromFixture("ForumHolder", "fh");
+		$this->assertEquals($fh->ForumEmailAddress,"admin@test.com");
+	}
 }

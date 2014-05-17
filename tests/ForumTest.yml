@@ -81,6 +81,9 @@ ForumHolder:
 	    Title: Forum holder in which forums are logged-in-user-only
 	    CanViewType: LoggedInUsers
 		CanPostType: LoggedInUsers
+	fhForumEmail:
+	    Title: Forum with email address
+	    ForumEmailAddress: forum@test.com
 ForumCategory:
 	fh1cat1:
 		Title: cat1
