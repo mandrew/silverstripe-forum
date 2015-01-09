@@ -46,7 +46,7 @@ class Forum extends Page {
 	 *
 	 * @var int
 	 */
-	static $posts_per_page = 8;
+	private static $posts_per_page = 8;
 	
 	/**
 	 * When migrating from older versions of the forum it used post ID as the url token
@@ -55,7 +55,23 @@ class Forum extends Page {
 	 *
 	 * @var bool
 	 */
-	static $redirect_post_urls_to_thread = false;
+	private static $redirect_post_urls_to_thread = false;
+
+	/**
+	 * Require moderation on all posts
+	 *
+	 * @var boolean
+	 * @config
+	 */
+	private static $require_moderation = false;
+
+	/**
+	 * Require moderation on a the first post from a Member
+	 *
+	 * @var boolean
+	 * @config
+	 */
+	private static $require_moderation_on_first_post = false;
 
 	/**
 	 * Check if the user can view the forum.
@@ -955,7 +971,12 @@ class Forum_Controller extends Page_Controller {
 			$post->AuthorID = ($member) ? $member->ID : 0;
 			$post->ThreadID = $thread->ID;
 		}
-		
+
+		// Set status to 'Awating' moderation if required for all posts, or just the first post
+		if(Config::inst()->get('Forum','require_moderation') || Config::inst()->get('Forum','require_moderation_on_first_post')) {
+			$post->Status = 'Awaiting';
+		}
+				
 		$post->ForumID = $thread->ForumID;
 		$post->Content = $content;
 		$post->write();
