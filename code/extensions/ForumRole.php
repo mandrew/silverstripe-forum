@@ -57,7 +57,8 @@ class ForumRole extends DataExtension {
 		'LastViewed' => 'SS_Datetime',
 		'Signature' => 'Text',
 		'ForumStatus' => 'Enum("Normal, Banned, Ghost", "Normal")',
-		'SuspendedUntil' => 'Date'
+		'SuspendedUntil' => 'Date',
+		'NeedsModeration' => 'Boolean',
 	);
 
 	private static $has_one = array(
@@ -81,7 +82,8 @@ class ForumRole extends DataExtension {
 	);
 
 	private static $field_labels = array(
-		'SuspendedUntil' => "Suspend this member from writing on forums until the specified date"
+		'SuspendedUntil' => "Suspend this member from writing on forums until the specified date",
+		'NeedsModeration' => "This users first post requires approval by a forum moderator"
 	);
 
 	public function onBeforeDelete() {
@@ -368,6 +370,27 @@ class ForumRole extends DataExtension {
 			);
 		}
 		return $msg;
+	}
+
+	/**
+	 * This message will only appear if $require_moderation_on_first_post is set to true
+	 * 
+	 * @return String
+	 */
+	public function FirstPostModeratedMessage($member = null, $firstPost = null) {
+		$msgBeforeFirstPost = _t('ForumRole.NOTEBEFOREFIRSTPOST', 'Your first post will be moderated, once it is approved then all posts will appear automatically');
+		$msgAfterFirstPost = _t('ForumRole.NOTEAFTERFIRSTPOST', 'Your first post is waiting to be moderated, once it isapproved then all posts will appear automatically');
+		if(!$member) $member = Member::currentUser();
+		$firstPost = Post::get()->where('AuthorID' == $member->ID);
+
+		if($this->owner->NeedsModeration) {
+			if($firstPost) { 
+				return $msgBeforeFirstPost;
+			}
+			else {
+				return $msgAfterFirstPost;
+			}
+		}
 	}
 }
 

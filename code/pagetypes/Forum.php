@@ -46,7 +46,7 @@ class Forum extends Page {
 	 *
 	 * @var int
 	 */
-	private static $posts_per_page = 8;
+	public static $posts_per_page = 8;
 	
 	/**
 	 * When migrating from older versions of the forum it used post ID as the url token
@@ -55,7 +55,7 @@ class Forum extends Page {
 	 *
 	 * @var bool
 	 */
-	private static $redirect_post_urls_to_thread = false;
+	public static $redirect_post_urls_to_thread = false;
 
 	/**
 	 * Require moderation on all posts
@@ -63,7 +63,7 @@ class Forum extends Page {
 	 * @var boolean
 	 * @config
 	 */
-	private static $require_moderation = false;
+	public static $require_moderation = false;
 
 	/**
 	 * Require moderation on a the first post from a Member
@@ -71,7 +71,7 @@ class Forum extends Page {
 	 * @var boolean
 	 * @config
 	 */
-	private static $require_moderation_on_first_post = false;
+	public static $require_moderation_on_first_post = false;
 
 	/**
 	 * Check if the user can view the forum.
@@ -123,9 +123,9 @@ class Forum extends Page {
 		if(!$member) $member = Member::currentUser();
 
 		if(!$member) return false;
-		
+
 		// Admins
-		if ($this->canEdit($member)) return true; 
+		if ($this->canEdit($member)) return true;
 
 		// Moderators
 		if ($member->isModeratingForum($this)) return true;
@@ -973,7 +973,7 @@ class Forum_Controller extends Page_Controller {
 		}
 
 		// Set status to 'Awating' moderation if required for all posts, or just the first post
-		if(Config::inst()->get('Forum','require_moderation') || Config::inst()->get('Forum','require_moderation_on_first_post')) {
+		if(Forum::$require_moderation || Forum::$require_moderation_on_first_post) {
 			$post->Status = 'Awaiting';
 		}
 				
@@ -1008,7 +1008,7 @@ class Forum_Controller extends Page_Controller {
 		ForumThread_Subscription::notify($post);
 		
 		// Send any notifications to moderators of the forum
-		if (Forum::$notify_moderators) {
+		if (Forum::$notify_moderators || Forum::$require_moderation_on_first_post) {
 			if(isset($starting_thread) && $starting_thread) $this->notifyModerators($post, $thread, true);
 			else $this->notifyModerators($post, $thread);
 		}
@@ -1101,6 +1101,7 @@ class Forum_Controller extends Page_Controller {
 			if(!$thread->getFirstPost()){
 				// don't hide the post for logged in admins or moderators
 				$member = Member::currentUser();
+
 				if(!$this->canModerate($member)) {
 					return $this->httpError(404);
 				}

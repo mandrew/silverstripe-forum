@@ -209,6 +209,11 @@ class ForumMemberProfile extends Page_Controller {
 		// create the new member
 		$member = Object::create('Member');
 		$form->saveInto($member);
+
+		// if first post moderation is turned on then set IsModerated to 1
+		if(Forum::$require_moderation_on_first_post) {
+			$member->IsModerated = 1;
+		}
   		
 		$member->write();
 		$member->login();
